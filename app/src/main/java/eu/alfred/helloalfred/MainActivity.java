@@ -113,7 +113,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void onBtnReadClick(View view){
-        readText();
+        //readText();
     }
 
     private void saveText(String text) {
@@ -223,7 +223,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    private void readText(){
+    /*private void readText(){
         JSONObject queryObject = new JSONObject();
         try {
             queryObject.put("key", "HelloAlfredName");
@@ -253,7 +253,7 @@ public class MainActivity extends ActionBarActivity {
                 setText(jsonArray.toString());
             }
         });
-    }
+    }*/
 
     private void setText(String text){
 
