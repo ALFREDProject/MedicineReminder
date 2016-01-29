@@ -1,4 +1,4 @@
-package eu.alfred.helloalfred;
+package eu.alfred.medicinereminder;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
