@@ -1,10 +1,9 @@
 package eu.alfred.medicinereminder;
 
-import java.util.Date;
-
 public class Reminder {
 	public String title;
-	public Date date;
+	public int hour;
+	public int minute;
 	public int weekdays;
 
 	public static final int Monday = 1;
@@ -15,9 +14,10 @@ public class Reminder {
 	public static final int Saturday = 32;
 	public static final int Sunday = 64;
 
-	public Reminder(String title, Date date, int weekdays) {
+	public Reminder(String title, int hour, int minute, int weekdays) {
 		this.title = title;
-		this.date = date;
+		this.hour = hour;
+		this.minute = minute;
 		this.weekdays = weekdays;
 	}
 }
