@@ -1,5 +1,6 @@
 package eu.alfred.medicinereminder;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,14 +18,35 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ToggleButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import eu.alfred.api.PersonalAssistant;
+import eu.alfred.api.PersonalAssistantConnection;
+import eu.alfred.api.storage.CloudStorage;
+import eu.alfred.api.storage.responses.BucketResponse;
 import eu.alfred.ui.CircleButton;
 
 public class MainActivity extends eu.alfred.ui.AppActivity {
+	private static final String bucketId = "medicinereminder";
 	private static ArrayList<Reminder> reminders = new ArrayList<>();
+
+	@Override
+	public void performValidity(String calledAction, Map<String, String> map) {
+	}
+
+	@Override
+	public void performEntityRecognizer(String calledAction, Map<String, String> map) {
+	}
+
+	@Override
+	public void performWhQuery(final String calledAction, final Map<String, String> map) {
+
+	}
 
 	private void loadBigReminder(final Reminder item) {
 		setContentView(R.layout.big_reminder);
@@ -208,8 +230,34 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	}
 
 	@Override
+	public void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+
+		cloudStorage.createBucket(bucketId, new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+				int a = 0;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+				int a = 0;
+				++a;
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				int a = 0;
+				++a;
+			}
+		});
+	}
+
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 
 		reminders.add(new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday));
 		reminders.add(new Reminder("Grüne Pille", 15, 0, Reminder.Sunday));
