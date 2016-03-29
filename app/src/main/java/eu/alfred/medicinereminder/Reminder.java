@@ -1,5 +1,7 @@
 package eu.alfred.medicinereminder;
 
+import org.json.JSONObject;
+
 public class Reminder {
 	public String title;
 	public int hour;
@@ -19,5 +21,31 @@ public class Reminder {
 		this.hour = hour;
 		this.minute = minute;
 		this.weekdays = weekdays;
+	}
+
+	public JSONObject toJson() {
+		JSONObject obj = new JSONObject();
+		try {
+			obj.put("title", title);
+			obj.put("hour", hour);
+			obj.put("minute", minute);
+			obj.put("weekdays", weekdays);
+		}
+		catch (Exception ex) {
+			System.err.println("Json Exception.");
+			ex.printStackTrace();
+		}
+		return obj;
+	}
+
+	public static Reminder fromJson(JSONObject obj) {
+		try {
+			return new Reminder(obj.getString("title"), obj.getInt("hour"), obj.getInt("minute"), obj.getInt("weekdays"));
+		}
+		catch (Exception ex) {
+			System.err.println("Json Exception.");
+			ex.printStackTrace();
+			return null;
+		}
 	}
 }

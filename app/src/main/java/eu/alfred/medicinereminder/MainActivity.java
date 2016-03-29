@@ -2,6 +2,7 @@ package eu.alfred.medicinereminder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -32,7 +33,7 @@ import eu.alfred.api.storage.responses.BucketResponse;
 import eu.alfred.ui.CircleButton;
 
 public class MainActivity extends eu.alfred.ui.AppActivity {
-	private static final String bucketId = "medicinereminder";
+	private String bucketId;
 	private static ArrayList<Reminder> reminders = new ArrayList<>();
 
 	@Override
@@ -233,7 +234,33 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
-		cloudStorage.createBucket(bucketId, new BucketResponse() {
+		cloudStorage.readJsonArray(bucketId, new JSONObject(), new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				int a = 3;
+				++a;
+			}
+		});
+
+		/*cloudStorage.saveJsonObject(bucketId, new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday).toJson(), new BucketResponse() {
 			@Override
 			public void OnSuccess(JSONObject jsonObject) {
 				int a = 0;
@@ -251,17 +278,19 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 				int a = 0;
 				++a;
 			}
-		});
+		});*/
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		// TODO: Get ID from Pers.Manager's User class
+		bucketId = "medicinereminder_" + Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
-		reminders.add(new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday));
-		reminders.add(new Reminder("Grüne Pille", 15, 0, Reminder.Sunday));
-		reminders.add(new Reminder("Blaue Pille", 11, 20, Reminder.Friday));
+		//reminders.add(new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday));
+		//reminders.add(new Reminder("Grüne Pille", 15, 0, Reminder.Sunday));
+		//reminders.add(new Reminder("Blaue Pille", 11, 20, Reminder.Friday));
 
 		start();
 	}
