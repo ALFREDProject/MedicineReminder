@@ -234,7 +234,8 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
-		cloudStorage.readJsonArray(bucketId, new JSONObject(), new BucketResponse() {
+		// Step 3
+		/*cloudStorage.readJsonArray(bucketId, new JSONObject(), new BucketResponse() {
 			@Override
 			public void OnSuccess(JSONObject jsonObject) {
 				int a = 3;
@@ -258,24 +259,58 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 				int a = 3;
 				++a;
 			}
-		});
+		});*/
 
-		/*cloudStorage.saveJsonObject(bucketId, new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday).toJson(), new BucketResponse() {
+		// Step 2
+		/*cloudStorage.writeJsonObject(bucketId, new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday).toJson(), new BucketResponse() {
 			@Override
 			public void OnSuccess(JSONObject jsonObject) {
-				int a = 0;
+				int a = 3;
 				++a;
 			}
 
 			@Override
 			public void OnSuccess(JSONArray jsonArray) {
-				int a = 0;
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+				int a = 3;
 				++a;
 			}
 
 			@Override
 			public void OnError(Exception e) {
-				int a = 0;
+				int a = 3;
+				++a;
+			}
+		});*/
+
+		// Step 1
+		/*cloudStorage.createStructuredBucket(bucketId, new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+				int a = 3;
+				++a;
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				int a = 3;
 				++a;
 			}
 		});*/
