@@ -1,8 +1,18 @@
 package eu.alfred.medicinereminder;
 
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.Settings;
+import android.support.v4.app.NotificationCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -23,6 +33,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -228,6 +240,8 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 				loadBigReminder((Reminder)parent.getItemAtPosition(position));
 			}
 		});
+
+		setNextAlarm();
 	}
 
 	@Override
@@ -235,7 +249,12 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 		super.onNewIntent(intent);
 
 		// Step 3
-		/*cloudStorage.readJsonArray(bucketId, new JSONObject(), new BucketResponse() {
+		/*JSONObject obj = new JSONObject();
+		try {
+			obj.put("type", "Reminder");
+		}
+		catch (Exception ex) {}
+		cloudStorage.readJsonArray(bucketId, obj, new BucketResponse() {
 			@Override
 			public void OnSuccess(JSONObject jsonObject) {
 				int a = 3;
@@ -333,5 +352,42 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	@Override
 	public void performAction(String command, Map<String, String> map) {
 		Log.i("medicine", "Perform action " + command);
+	}
+
+	private void setNextAlarm() {
+		Collections.sort(reminders);
+
+		BroadcastReceiver receiver = new BroadcastReceiver() {
+			@Override public void onReceive(Context context, Intent intent) {
+				sendNotification(reminders.get(0));
+				context.unregisterReceiver(this);
+				setNextAlarm();
+			}
+		};
+
+		final String intentid = "eu.alfred.medicinereminder";
+		this.registerReceiver(receiver, new IntentFilter(intentid));
+		PendingIntent pintent = PendingIntent.getBroadcast(this, 0, new Intent(intentid), 0);
+		AlarmManager manager = (AlarmManager)(getSystemService(Context.ALARM_SERVICE));
+		manager.set(AlarmManager.RTC_WAKEUP, reminders.get(0).nextCalendar().getTimeInMillis(), pintent);
+	}
+
+	private void sendNotification(Reminder reminder) {
+		NotificationCompat.Builder mBuilder =
+				new NotificationCompat.Builder(this)
+						.setContentTitle(reminder.title)
+						.setContentText(reminder.title);
+		//Intent resultIntent = new Intent(this, ResultActivity.class);
+		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+		//stackBuilder.addParentStack(ResultActivity.class);
+		//stackBuilder.addNextIntent(resultIntent);
+		PendingIntent resultPendingIntent =
+				stackBuilder.getPendingIntent(
+						0,
+						PendingIntent.FLAG_UPDATE_CURRENT
+				);
+		mBuilder.setContentIntent(resultPendingIntent);
+		NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.notify(0, mBuilder.build());
 	}
 }
