@@ -9,6 +9,7 @@ public class Reminder implements Comparable<Reminder> {
 	public int hour;
 	public int minute;
 	public int weekdays;
+	public boolean saved = false;
 
 	public static final int Monday = 1;
 	public static final int Tuesday = 2;

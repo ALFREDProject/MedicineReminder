@@ -9,23 +9,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ToggleButton;
 
@@ -33,14 +27,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
-import eu.alfred.api.PersonalAssistant;
-import eu.alfred.api.PersonalAssistantConnection;
-import eu.alfred.api.storage.CloudStorage;
 import eu.alfred.api.storage.responses.BucketResponse;
 import eu.alfred.ui.CircleButton;
 
@@ -63,6 +52,8 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 
 	private void loadBigReminder(final Reminder item) {
 		setContentView(R.layout.big_reminder);
+
+		final String originalTitle = item.title;
 
 		final EditText text = (EditText)findViewById(R.id.title);
 		text.setText(item.title);
@@ -194,22 +185,27 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 			}
 		});
 
-		Button button = (Button)findViewById(R.id.button);
-		button.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				start();
-			}
-		});
-
 		Button deleteButton = (Button)findViewById(R.id.delete);
 		deleteButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				reminders.remove(item);
 				start();
+				delete(item);
 			}
 		});
+
+		Button button = (Button)findViewById(R.id.save);
+		button.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				start();
+				if (item.saved) update(item, originalTitle);
+				else save(item);
+				item.saved = true;
+			}
+		});
+
 	}
 
 	private void start() {
@@ -228,7 +224,7 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 		reminderButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Reminder reminder = new Reminder("New Reminder", 12, 0, 0);
+				Reminder reminder = new Reminder("New Reminder " + reminders.size(), 12, 0, 0);
 				reminders.add(reminder);
 				loadBigReminder(reminder);
 			}
@@ -247,92 +243,157 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
+		loadEverything();
+	}
 
-		// Step 3
-		/*JSONObject obj = new JSONObject();
+	private void saveStep2(Reminder reminder) {
+		cloudStorage.writeJsonObject(bucketId, reminder.toJson(), new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void save(final Reminder reminder) {
+		cloudStorage.createStructuredBucket(bucketId, new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+				saveStep2(reminder);
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+				saveStep2(reminder);
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+				saveStep2(reminder);
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				saveStep2(reminder);
+			}
+		});
+	}
+
+	private void update(Reminder reminder, String title) {
+		JSONObject query = new JSONObject();
+		try {
+			query.put("type", "Reminder");
+			query.put("title", title);
+		}
+		catch (Exception ex) {
+			System.err.println("Json Exception.");
+			ex.printStackTrace();
+		}
+		cloudStorage.updateJsonObject(bucketId, reminder.toJson(), query, new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void delete(Reminder reminder) {
+		JSONObject query = new JSONObject();
+		try {
+			query.put("type", "Reminder");
+			query.put("title", reminder.title);
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		cloudStorage.deleteJsonObject(bucketId, query, new BucketResponse() {
+			@Override
+			public void OnSuccess(JSONObject jsonObject) {
+
+			}
+
+			@Override
+			public void OnSuccess(JSONArray jsonArray) {
+
+			}
+
+			@Override
+			public void OnSuccess(byte[] bytes) {
+
+			}
+
+			@Override
+			public void OnError(Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void loadEverything() {
+		JSONObject obj = new JSONObject();
 		try {
 			obj.put("type", "Reminder");
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		catch (Exception ex) {}
 		cloudStorage.readJsonArray(bucketId, obj, new BucketResponse() {
 			@Override
-			public void OnSuccess(JSONObject jsonObject) {
-				int a = 3;
-				++a;
+			public void OnSuccess(JSONArray array) {
+				try {
+					reminders.clear();
+					for (int i = 0; i < array.length(); ++i) {
+						Reminder reminder = Reminder.fromJson(array.getJSONObject(i));
+						reminder.saved = true;
+						reminders.add(reminder);
+					}
+					start();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 
 			@Override
-			public void OnSuccess(JSONArray jsonArray) {
-				int a = 3;
-				++a;
-			}
+			public void OnSuccess(JSONObject object) {
 
-			@Override
-			public void OnSuccess(byte[] bytes) {
-				int a = 3;
-				++a;
-			}
-
-			@Override
-			public void OnError(Exception e) {
-				int a = 3;
-				++a;
-			}
-		});*/
-
-		// Step 2
-		/*cloudStorage.writeJsonObject(bucketId, new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday).toJson(), new BucketResponse() {
-			@Override
-			public void OnSuccess(JSONObject jsonObject) {
-				int a = 3;
-				++a;
-			}
-
-			@Override
-			public void OnSuccess(JSONArray jsonArray) {
-				int a = 3;
-				++a;
 			}
 
 			@Override
 			public void OnSuccess(byte[] bytes) {
-				int a = 3;
-				++a;
+
 			}
 
 			@Override
 			public void OnError(Exception e) {
-				int a = 3;
-				++a;
+				e.printStackTrace();
 			}
-		});*/
-
-		// Step 1
-		/*cloudStorage.createStructuredBucket(bucketId, new BucketResponse() {
-			@Override
-			public void OnSuccess(JSONObject jsonObject) {
-				int a = 3;
-				++a;
-			}
-
-			@Override
-			public void OnSuccess(JSONArray jsonArray) {
-				int a = 3;
-				++a;
-			}
-
-			@Override
-			public void OnSuccess(byte[] bytes) {
-				int a = 3;
-				++a;
-			}
-
-			@Override
-			public void OnError(Exception e) {
-				int a = 3;
-				++a;
-			}
-		});*/
+		});
 	}
 
 	@Override
@@ -341,10 +402,6 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 
 		// TODO: Get ID from Pers.Manager's User class
 		bucketId = "medicinereminder_" + Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-
-		//reminders.add(new Reminder("Rote Pille", 13, 55, Reminder.Monday | Reminder.Tuesday | Reminder.Wednesday));
-		//reminders.add(new Reminder("Grüne Pille", 15, 0, Reminder.Sunday));
-		//reminders.add(new Reminder("Blaue Pille", 11, 20, Reminder.Friday));
 
 		start();
 	}
