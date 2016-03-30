@@ -1,7 +1,5 @@
 package eu.alfred.medicinereminder;
 
-import android.widget.CalendarView;
-
 import org.json.JSONObject;
 
 import java.util.Calendar;
@@ -30,13 +28,13 @@ public class Reminder implements Comparable<Reminder> {
 	private static int getDay(int day) {
 		switch (day) {
 			default:
-			case 1: return Monday;
-			case 2: return Tuesday;
-			case 3: return Wednesday;
-			case 4: return Thursday;
-			case 5: return Friday;
-			case 6: return Saturday;
-			case 7: return Sunday;
+			case Calendar.MONDAY: return Monday;
+			case Calendar.TUESDAY: return Tuesday;
+			case Calendar.WEDNESDAY: return Wednesday;
+			case Calendar.THURSDAY: return Thursday;
+			case Calendar.FRIDAY: return Friday;
+			case Calendar.SATURDAY: return Saturday;
+			case Calendar.SUNDAY: return Sunday;
 		}
 	}
 
@@ -47,22 +45,23 @@ public class Reminder implements Comparable<Reminder> {
 	}
 
 	public Calendar nextCalendar() {
+		Calendar now = Calendar.getInstance();
+		now.setTimeInMillis(System.currentTimeMillis());
+
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(System.currentTimeMillis());
 		calendar.set(Calendar.HOUR_OF_DAY, hour);
 		calendar.set(Calendar.MINUTE, minute);
-		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-		for (int i = 1; i <= 7; ++i) {
-			if ((weekdays & getDay(dayOfWeek)) != 0) {
-				calendar.set(Calendar.DAY_OF_WEEK, dayOfWeek);
-				break;
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+
+		for (;;) {
+			if ((weekdays & getDay(calendar.get(Calendar.DAY_OF_WEEK))) != 0) {
+				if (calendar.compareTo(now) > 0) break;
 			}
-			++dayOfWeek;
-			if (dayOfWeek > 7) {
-				dayOfWeek = 1;
-				calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
-			}
+			calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + 1);
 		}
+
 		return calendar;
 	}
 

@@ -342,7 +342,7 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 		// TODO: Get ID from Pers.Manager's User class
 		bucketId = "medicinereminder_" + Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
-		//reminders.add(new Reminder("Rote Pille", 12, 14, Reminder.Monday | Reminder.Tuesday));
+		//reminders.add(new Reminder("Rote Pille", 13, 55, Reminder.Monday | Reminder.Tuesday | Reminder.Wednesday));
 		//reminders.add(new Reminder("Grüne Pille", 15, 0, Reminder.Sunday));
 		//reminders.add(new Reminder("Blaue Pille", 11, 20, Reminder.Friday));
 
@@ -356,38 +356,34 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 
 	private void setNextAlarm() {
 		Collections.sort(reminders);
+		if (reminders.size() > 0) {
+			BroadcastReceiver receiver = new BroadcastReceiver() {
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					showNotification(reminders.get(0));
+					context.unregisterReceiver(this);
+					setNextAlarm();
+				}
+			};
 
-		BroadcastReceiver receiver = new BroadcastReceiver() {
-			@Override public void onReceive(Context context, Intent intent) {
-				sendNotification(reminders.get(0));
-				context.unregisterReceiver(this);
-				setNextAlarm();
-			}
-		};
-
-		final String intentid = "eu.alfred.medicinereminder";
-		this.registerReceiver(receiver, new IntentFilter(intentid));
-		PendingIntent pintent = PendingIntent.getBroadcast(this, 0, new Intent(intentid), 0);
-		AlarmManager manager = (AlarmManager)(getSystemService(Context.ALARM_SERVICE));
-		manager.set(AlarmManager.RTC_WAKEUP, reminders.get(0).nextCalendar().getTimeInMillis(), pintent);
+			final String intentid = "eu.alfred.medicinereminder";
+			this.registerReceiver(receiver, new IntentFilter(intentid));
+			PendingIntent pintent = PendingIntent.getBroadcast(this, 0, new Intent(intentid), 0);
+			AlarmManager manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+			manager.set(AlarmManager.RTC_WAKEUP, reminders.get(0).nextCalendar().getTimeInMillis(), pintent);
+		}
 	}
 
-	private void sendNotification(Reminder reminder) {
-		NotificationCompat.Builder mBuilder =
-				new NotificationCompat.Builder(this)
-						.setContentTitle(reminder.title)
-						.setContentText(reminder.title);
-		//Intent resultIntent = new Intent(this, ResultActivity.class);
+	private void showNotification(Reminder reminder) {
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setContentTitle(reminder.title).setContentText(reminder.title);
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-		//stackBuilder.addParentStack(ResultActivity.class);
-		//stackBuilder.addNextIntent(resultIntent);
-		PendingIntent resultPendingIntent =
-				stackBuilder.getPendingIntent(
-						0,
-						PendingIntent.FLAG_UPDATE_CURRENT
-				);
-		mBuilder.setContentIntent(resultPendingIntent);
-		NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.notify(0, mBuilder.build());
+		stackBuilder.addParentStack(MainActivity.class);
+		stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+		builder.setContentIntent(resultPendingIntent);
+		NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+		manager.notify(0, builder.build());
 	}
 }
