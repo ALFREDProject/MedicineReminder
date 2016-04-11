@@ -205,7 +205,6 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 				item.saved = true;
 			}
 		});
-
 	}
 
 	private void start() {
