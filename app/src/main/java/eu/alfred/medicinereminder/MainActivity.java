@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import eu.alfred.api.storage.responses.BucketResponse;
+import eu.alfred.ui.BackToPAButton;
 import eu.alfred.ui.CircleButton;
 
 public class MainActivity extends eu.alfred.ui.AppActivity {
@@ -210,8 +211,10 @@ public class MainActivity extends eu.alfred.ui.AppActivity {
 	private void start() {
 		setContentView(R.layout.activity_main);
 
+        backToPAButton = (BackToPAButton)findViewById(R.id.backControlBtn);
+        backToPAButton.setOnTouchListener(new BackTouchListener());
 		circleButton = (CircleButton)findViewById(R.id.voiceControlBtn);
-		circleButton.setOnTouchListener(new CircleTouchListener());
+		circleButton.setOnTouchListener(new MicrophoneTouchListener());
 
 		final ListView list = (ListView)findViewById(R.id.listView);
 
