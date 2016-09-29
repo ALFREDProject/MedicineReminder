@@ -8,8 +8,8 @@ android {
         applicationId "eu.alfred.medicinereminder"
         minSdkVersion 18
         targetSdkVersion 21
-        versionCode 13
-        versionName "1.0.12"
+        versionCode 14
+        versionName "1.0.13"
     }
     buildTypes {
         release {
